@@ -1,0 +1,31 @@
+{
+  "private": true,
+  "author": "xingzepeng <xingzepeng@bytedance.com>",
+  "scripts": {
+    "build": "max build",
+    "commit": "cz",
+    "dev": "max dev",
+    "format": "prettier --cache --write .",
+    "postinstall": "max setup",
+    "lint": "max lint --fix --color --cache --quiet",
+    "prepare": "husky install",
+    "setup": "max setup",
+    "start": "npm run dev"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.3.1",
+    "@ant-design/pro-components": "^2.6.49",
+    "@umijs/max": "^4.1.2",
+    "antd": "^5.15.2",
+    "antd-style": "^3.6.1",
+    "css-doodle": "^0.38.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.65",
+    "@types/react-dom": "^18.2.22",
+    "prettier": "^3.2.5",
+    "prettier-plugin-organize-imports": "^3.2.4",
+    "prettier-plugin-packagejson": "^2.4.12",
+    "typescript": "^5.4.2"
+  }
+}
