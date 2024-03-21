@@ -12,7 +12,8 @@ import { useState } from 'react';
 import logoUrl from '@/assets/logo.svg';
 
 type LoginType = 'phone' | 'account';
-
+let a = "1"
+a+10 == 10+10
 const Page = () => {
   const [loginType, setLoginType] = useState<LoginType>('account');
   const { token } = theme.useToken();
