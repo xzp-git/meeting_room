@@ -22,12 +22,6 @@
     "cz-conventional-changelog": "^3.3.0",
     "@umijs/max": "^4.1.2"
   },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -e $HUSKY_GIT_PARAMS && echo 'commit-msg-------------hook'",
-      "pre-commit": "npx --no-install lint-staged"
-    }
-  },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
