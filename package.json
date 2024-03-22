@@ -35,10 +35,10 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "max lint /apps/*/src --fix --color --cache --quiet"
+      "max lint  --fix --color --cache --quiet"
     ],
     "*.{js,jsx,mjs,mjsx,cjs,cjsx}": [
-      "max lint /apps/*/src --fix --color --cache --quiet"
+      "max lint  --fix --color --cache --quiet"
     ]
   },
   "config": {
