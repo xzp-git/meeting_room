@@ -1,25 +1,26 @@
+import { UserInfo, freezeUser, queryUserList } from '@/services';
 import services from '@/services/demo';
 import {
   ActionType,
   FooterToolbar,
   PageContainer,
+  ProColumns,
   ProDescriptions,
-  ProDescriptionsItemProps,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Divider, Drawer, message } from 'antd';
+import { useRequest } from '@umijs/max';
+import { Avatar, Button, Divider, Drawer, message } from 'antd';
 import React, { useRef, useState } from 'react';
 import CreateForm from './components/CreateForm';
 import UpdateForm, { FormValueType } from './components/UpdateForm';
 
-const { addUser, queryUserList, deleteUser, modifyUser } =
-  services.UserController;
+const { addUser, modifyUser } = services.UserController;
 
 /**
  * 添加节点
  * @param fields
  */
-const handleAdd = async (fields: API.UserInfo) => {
+const handleAdd = async (fields: UserInfo) => {
   const hide = message.loading('正在添加');
   try {
     await addUser({ ...fields });
@@ -61,40 +62,32 @@ const handleUpdate = async (fields: FormValueType) => {
   }
 };
 
-/**
- *  删除节点
- * @param selectedRows
- */
-const handleRemove = async (selectedRows: API.UserInfo[]) => {
-  const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
-  try {
-    await deleteUser({
-      userId: selectedRows.find((row) => row.id)?.id || '',
-    });
-    hide();
-    message.success('删除成功，即将刷新');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('删除失败，请重试');
-    return false;
-  }
-};
-
 const TableList: React.FC<unknown> = () => {
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
   const [updateModalVisible, handleUpdateModalVisible] =
     useState<boolean>(false);
   const [stepFormValues, setStepFormValues] = useState({});
   const actionRef = useRef<ActionType>();
-  const [row, setRow] = useState<API.UserInfo>();
-  const [selectedRowsState, setSelectedRows] = useState<API.UserInfo[]>([]);
-  const columns: ProDescriptionsItemProps<API.UserInfo>[] = [
+  const [row, setRow] = useState<UserInfo>();
+  const [selectedRowsState, setSelectedRows] = useState<UserInfo[]>([]);
+  const { run: runFreeze } = useRequest(
+    async (val) => {
+      const res = await freezeUser(val);
+      if (res.code === 1) {
+        message.success(val.freeze ? '冻结成功' : '解冻成功');
+        actionRef.current?.reload();
+      }
+    },
     {
-      title: '名称',
-      dataIndex: 'name',
-      tip: '名称是唯一的 key',
+      manual: true,
+    },
+  );
+
+  const columns: ProColumns<UserInfo>[] = [
+    {
+      title: '用户名',
+      dataIndex: 'username',
+
       formItemProps: {
         rules: [
           {
@@ -103,19 +96,52 @@ const TableList: React.FC<unknown> = () => {
           },
         ],
       },
+      render: (dom, entity) => {
+        return (
+          <a
+            onClick={() => {
+              setRow(entity);
+              // setShowDetail(true);
+            }}
+          >
+            {dom}
+          </a>
+        );
+      },
+    },
+    {
+      title: '头像',
+      dataIndex: 'avatar',
+      hideInSearch: true,
+      render: (_, record) => {
+        return record.avatar ? (
+          <Avatar src={`http://localhost:3001/${record.avatar}`} />
+        ) : (
+          _
+        );
+      },
     },
     {
       title: '昵称',
       dataIndex: 'nickName',
-      valueType: 'text',
     },
     {
-      title: '性别',
-      dataIndex: 'gender',
+      title: '邮箱',
+      dataIndex: 'email',
+    },
+    {
+      title: '状态',
+      dataIndex: 'isFrozen',
       hideInForm: true,
       valueEnum: {
-        0: { text: '男', status: 'MALE' },
-        1: { text: '女', status: 'FEMALE' },
+        0: {
+          text: '未冻结',
+          status: 'Success',
+        },
+        1: {
+          text: '已冻结',
+          status: 'Error',
+        },
       },
     },
     {
@@ -133,7 +159,13 @@ const TableList: React.FC<unknown> = () => {
             配置
           </a>
           <Divider type="vertical" />
-          <a href="">订阅警报</a>
+          <a
+            onClick={() =>
+              runFreeze({ id: record.id, freeze: Number(!record.isFrozen) })
+            }
+          >
+            {record.isFrozen ? '解冻' : '冻结'}
+          </a>
         </>
       ),
     },
@@ -143,10 +175,10 @@ const TableList: React.FC<unknown> = () => {
     <PageContainer
       ghost
       header={{
-        title: 'CRUD 示例',
+        title: '用户管理',
       }}
     >
-      <ProTable<API.UserInfo>
+      <ProTable<UserInfo>
         headerTitle="查询表格"
         actionRef={actionRef}
         rowKey="id"
@@ -163,7 +195,7 @@ const TableList: React.FC<unknown> = () => {
           </Button>,
         ]}
         request={async (params, sorter, filter) => {
-          const { data, success } = await queryUserList({
+          const { data, code } = await queryUserList({
             ...params,
             // FIXME: remove @ts-ignore
             // @ts-ignore
@@ -171,8 +203,9 @@ const TableList: React.FC<unknown> = () => {
             filter,
           });
           return {
-            data: data?.list || [],
-            success,
+            data: data?.users || [],
+            success: code === 1,
+            total: data?.total || 0,
           };
         }}
         columns={columns}
@@ -192,7 +225,6 @@ const TableList: React.FC<unknown> = () => {
         >
           <Button
             onClick={async () => {
-              await handleRemove(selectedRowsState);
               setSelectedRows([]);
               actionRef.current?.reloadAndRest?.();
             }}
@@ -206,7 +238,7 @@ const TableList: React.FC<unknown> = () => {
         onCancel={() => handleModalVisible(false)}
         modalVisible={createModalVisible}
       >
-        <ProTable<API.UserInfo, API.UserInfo>
+        <ProTable<UserInfo, UserInfo>
           onSubmit={async (value) => {
             const success = await handleAdd(value);
             if (success) {
@@ -250,17 +282,17 @@ const TableList: React.FC<unknown> = () => {
         }}
         closable={false}
       >
-        {row?.name && (
-          <ProDescriptions<API.UserInfo>
+        {row?.username && (
+          <ProDescriptions<UserInfo>
             column={2}
-            title={row?.name}
+            title={row?.username}
             request={async () => ({
               data: row || {},
             })}
             params={{
-              id: row?.name,
+              id: row?.username,
             }}
-            columns={columns}
+            columns={columns as any}
           />
         )}
       </Drawer>

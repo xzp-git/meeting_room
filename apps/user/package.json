@@ -1,4 +1,5 @@
 {
+  "name": "meeting-room-user",
   "private": true,
   "author": "xingzepeng <xingzepeng@bytedance.com>",
   "scripts": {

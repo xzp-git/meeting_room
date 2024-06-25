@@ -1,28 +1,57 @@
+import logoUrl from '@/assets/logo.svg';
+import { login } from '@/services';
 import { LockOutlined, MobileOutlined, UserOutlined } from '@ant-design/icons';
 import {
   LoginFormPage,
   ProConfigProvider,
   ProFormCaptcha,
-  ProFormCheckbox,
   ProFormText,
 } from '@ant-design/pro-components';
+import { Link, useModel, useRequest } from '@umijs/max';
 import { Tabs, message, theme } from 'antd';
+import { createStyles } from 'antd-style';
 import { useState } from 'react';
 
-import logoUrl from '@/assets/logo.svg';
+const useStyles = createStyles(({ css }) => {
+  return {
+    loginFooter: css`
+      margin-block-end: 24px;
+      display: flex;
+      justify-content: space-between;
+    `,
+  };
+});
 
 type LoginType = 'phone' | 'account';
+
 const Page = () => {
+  const { setInitialState } = useModel('@@initialState');
   const [loginType, setLoginType] = useState<LoginType>('account');
   const { token } = theme.useToken();
+  const { styles } = useStyles();
+  const { run: runLogin } = useRequest(
+    async (val: any) => {
+      const res = await login(val);
+      const { data, code } = res;
+      if (code === 1) {
+        message.success('登录成功');
+        localStorage.setItem('access_token', data.accessToken);
+        localStorage.setItem('refresh_token', data.refreshToken);
+        setInitialState((s) => ({ ...s, currentUser: data.userInfo }));
+        localStorage.setItem('user_info', JSON.stringify(data.userInfo));
+        const urlParams = new URL(window.location.href).searchParams;
+        window.location.href = urlParams.get('redirect') || '/';
+      }
+    },
+    {
+      manual: true,
+    },
+  );
   return (
     <div style={{ height: '100vh' }}>
-      {/* <LoginBackground /> */}
       <LoginFormPage
         logo={logoUrl}
-        onFinish={async (values) => {
-          console.log(values);
-        }}
+        onFinish={runLogin}
         backgroundVideoUrl="https://gw.alipayobjects.com/v/huamei_gcee1x/afts/video/jXRBRK_VAwoAAAAAAAAAAAAAK4eUAQBr"
         title="灵境畅议"
         containerStyle={{
@@ -42,7 +71,7 @@ const Page = () => {
             },
             {
               key: 'phone',
-              label: '手机号登录',
+              label: '邮箱验证码登录',
             },
           ]}
         />
@@ -82,7 +111,7 @@ const Page = () => {
                   />
                 ),
               }}
-              placeholder={'密码: ant.design'}
+              placeholder={'密码: 666666'}
               rules={[
                 {
                   required: true,
@@ -154,21 +183,9 @@ const Page = () => {
             />
           </>
         )}
-        <div
-          style={{
-            marginBlockEnd: 24,
-          }}
-        >
-          <ProFormCheckbox noStyle name="autoLogin">
-            自动登录
-          </ProFormCheckbox>
-          <a
-            style={{
-              float: 'right',
-            }}
-          >
-            忘记密码
-          </a>
+        <div className={styles.loginFooter}>
+          <Link to="/user/register">创建账号</Link>
+          <Link to="/user/update-password">忘记密码</Link>
         </div>
       </LoginFormPage>
     </div>

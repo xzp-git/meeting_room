@@ -9,7 +9,7 @@
   "main": "index.js",
   "scripts": {
     "commit": "cz",
-    "dev:user": "pnpm -C /apps/user dev",
+    "dev:user": "pnpm -C ./apps/user dev",
     "format": "prettier --cache --write .",
     "lint": "npx max lint --fix --color --cache --quiet",
     "prepare": "husky install"

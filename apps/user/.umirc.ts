@@ -26,9 +26,19 @@ export default defineConfig({
           component: './user/login',
         },
         {
-          path: '/user/*',
-          component: './404',
+          path: '/user/register',
+          name: 'register',
+          component: './user/register',
         },
+        {
+          path: '/user/update-password',
+          name: 'update-password',
+          component: './user/update-password',
+        },
+        // {
+        //   path: '/user/*',
+        //   component: './404',
+        // },
       ],
     },
     {
@@ -44,12 +54,26 @@ export default defineConfig({
       name: '权限演示',
       path: '/access',
       component: './Access',
-      hideInMenu: true,
     },
     {
-      name: ' CRUD 示例',
-      path: '/table',
-      component: './Table',
+      name: '会议室预定',
+      path: '/meeting-room-reserve',
+      component: './meeting-room-reserve',
+    },
+    {
+      name: '会议室管理',
+      path: '/meeting-room-management',
+      component: './meeting-room-management',
+    },
+    {
+      name: '用户管理',
+      path: '/user-management',
+      component: './user-management',
+    },
+    {
+      name: '个人设置',
+      path: '/settings',
+      component: './settings',
     },
     {
       component: './404',
